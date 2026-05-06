@@ -1,0 +1,4 @@
+train: /gemini/code/YOLOv11/datasets/NEU-DETdata-重制版/train
+val: /gemini/code/YOLOv11/datasets/NEU-DETdata-重制版/test
+nc: 6 #标签数量
+names: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches']#标签名称
