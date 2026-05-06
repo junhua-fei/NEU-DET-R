@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Document</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 100%;
+			height:1200;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1, h2, h3, h4, h5, h6 { margin-top: 1.5rem; margin-bottom: 1rem; }
+        pre { background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+        code { background: #f6f8fa; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        blockquote { border-left: 4px solid #dfe2e5; padding-left: 1rem; margin: 1rem 0; color: #6a737d; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #dfe2e5; padding: 0.5rem; text-align: left; }
+        th { background: #f6f8fa; }
+    </style>
+</head>
+<body>
+<h1 id="h1-neu-det-r_guidelines_v1-0-"><a name="NEU-DET-R_Guidelines_v1.0 (数据标注员指南)" class="reference-link"></a><span class="header-link octicon octicon-link"></span>NEU-DET-R_Guidelines_v1.0 (数据标注员指南)</h1><p><strong>版本号：</strong> v1.0<br><strong>发布日期：</strong> 2026-04-29<br><strong>面向对象：</strong> 数据标注员 (Annotators)</p>
+<hr>
+<h2 id="h2--"><a name="🛑 核心警示（必读）" class="reference-link"></a><span class="header-link octicon octicon-link"></span>🛑 核心警示（必读）</h2><p>欢迎加入 NEU-DET-R 重标注项目！<br>你的任务<strong>极其单一且重要</strong>：在 200×200 的灰度钢板图中，<strong>只负责重新标注类别 <code>0</code>（crazing / 龟裂）</strong>。<br>画面中原有的其他缺陷（如夹杂物、斑块、划痕等类别 1-5），<strong>绝对不要触碰、不要修改、不要删除</strong>！</p>
+<hr>
+<h2 id="h2-1-"><a name="1. 准备工作" class="reference-link"></a><span class="header-link octicon octicon-link"></span>1. 准备工作</h2><ol>
+<li><strong>标注工具：</strong> 使用 LabelImg（本地）或 CVAT（在线）。</li><li><strong>格式要求：</strong> 必须保存为 <strong>YOLO</strong> 格式（<code>.txt</code> 文件）。绝不能用 PASCAL VOC (<code>.xml</code>)。</li><li><strong>标签列表 (<code>classes.txt</code>)：</strong> 确保第一行（类别 0）是 <code>crazing</code>。</li><li><strong>工作环境：</strong> 由于图片是低对比度的灰度图，请尽量在光线较暗的室内工作，并适当调高显示器的对比度，以免引发视觉疲劳。</li></ol>
+<hr>
+<h2 id="h2-2-sop-"><a name="2. 标准操作流程 (SOP)" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2. 标准操作流程 (SOP)</h2><ul>
+<li><strong>第 1 步：打开图片。</strong> 观察画面，寻找像“碎玻璃”或“干涸河床”一样的网状交叉裂纹。</li><li><strong>第 2 步：清空旧标。</strong> 如果图片里已经有了类别为 <code>crazing</code> 的框，<strong>全部删掉</strong>，我们要重画。</li><li><strong>第 3 步：精细画框。</strong> 严格按照下文的【拆分法】和【可见度判定锁】绘制新的 <code>crazing</code> 框。</li><li><strong>第 4 步：检查贴合度。</strong> 放大图片，确保矩形框的四条边都<strong>紧紧贴住</strong>裂纹的最外侧边缘，不要留出大片无用的空白钢板背景。</li><li><strong>第 5 步：保存并进入下一张。</strong> (快捷键：<code>Ctrl+S</code> -&gt; <code>D</code>)</li></ul>
+<hr>
+<h2 id="h2-3-crazing-"><a name="3. crazing 标注核心心法" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3. crazing 标注核心心法</h2><p>为了让人工智能学得更准，我们不再使用“一个大框套住一片网”的偷懒做法。请牢记以下两大心法：</p>
+<h3 id="h3--"><a name="⚔️ 心法一：化整为零（拆分法）" class="reference-link"></a><span class="header-link octicon octicon-link"></span>⚔️ 心法一：化整为零（拆分法）</h3><p><strong>目标：让框里尽量只有裂纹，没有好钢板。</strong></p>
+<ul>
+<li><strong>什么时候要拆分？</strong> 如果几条裂纹松散地平行排列，请看看它们中间隔着的“正常钢板空白宽度 (D)”。<strong>如果中间的空白宽度，比裂纹本身的线条还要宽</strong>，那就坚决不能用一个大框把它们套在一起！</li><li><strong>怎么做？</strong> 强制作废大包围框，顺着每条裂纹的走向，<strong>分别画细长的小框</strong>把它们独立圈出来。</li></ul>
+<h3 id="h3--"><a name="👁️ 心法二：太浅不标（可见度双重判定锁）" class="reference-link"></a><span class="header-link octicon octicon-link"></span>👁️ 心法二：太浅不标（可见度双重判定锁）</h3><p>灰度图很容易让人产生幻觉。为了防止你们把正常的钢板底纹当成裂纹标进去，算法团队通过上千张图片统计，定下了<strong>死规定</strong>。遇到“模棱两可”的疑似裂纹时，套用以下规则：</p>
+<ol>
+<li><strong>深度锁（必须发黑）：</strong> 真正的龟裂，最深的地方必须是偏黑色的（灰度上限为 121）。如果你盯着的这条线，整体发白、发灰，没有明显的“凹陷发黑”感，<strong>直接跳过，不标！</strong></li><li><strong>反差锁（必须明显）：</strong> 裂纹必须比它挨着的正常背景暗很多（反差底线为 59 个灰阶）。如果你觉得这条线和旁边的钢板颜色差不多，需要非常费力眯着眼才能看清轮廓，说明它是无效的水印或伪影，<strong>直接跳过，不标！</strong></li></ol>
+<blockquote>
+<p><strong>💡 简单口诀：</strong> &gt; “大框包散线，坚决要拆开；颜色灰又浅，绝对不要标！”</p>
+</blockquote>
+<hr>
+<h2 id="h2-4-"><a name="4. 视觉场景与边缘情况判定" class="reference-link"></a><span class="header-link octicon octicon-link"></span>4. 视觉场景与边缘情况判定</h2><p>由于只能看灰度图，请在脑海中对照以下场景进行决策：</p>
+<ul>
+<li><strong>🟢 典型正例（必须标）：</strong> 画面偏暗，有多条清晰的黑色细线交叉，形成至少 3 个交叉点的网络。-&gt; <strong>紧贴边缘画框。</strong></li><li><strong>🔴 典型反例（单线划痕）：</strong> 一条笔直或平滑的长线，没有分叉。-&gt; <strong>忽略！</strong> 这是 <code>scratches</code>（划痕），不属于你的工作范围。</li><li><strong>🟡 边缘截断（抵住边界）：</strong> 裂纹延伸到了图片的边缘被切断了。-&gt; <strong>边界框的边缘也要死死顶住图片的物理边缘。</strong></li><li><strong>🟡 极小缺陷（太小不标）：</strong> 裂纹网极小，感觉不到 15×15 个像素，肉眼极难辨认。-&gt; <strong>忽略！</strong></li><li><strong>🟡 缺陷重叠（该标就标）：</strong> 龟裂区域上面有一大块黑斑（patches）或者长划痕（scratches）穿过。-&gt; <strong>不用管别的缺陷，假设底层的网状裂纹是连续的，正常画出 crazing 的框，允许和其他类别的框重叠。</strong></li></ul>
+<hr>
+<h2 id="h2-5-"><a name="5. 常见错误速查表" class="reference-link"></a><span class="header-link octicon octicon-link"></span>5. 常见错误速查表</h2><table>
+<thead>
+<tr>
+<th style="text-align:left">错误表现</th>
+<th style="text-align:left">原因分析</th>
+<th style="text-align:left">纠正要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>偷懒大框 (Lazy Box)</strong></td>
+<td style="text-align:left">框画得太肥，里面包含了大面积没有裂纹的完好钢板。</td>
+<td style="text-align:left">放大图像，将框的四边往里缩，直到死死贴住裂纹最外侧的像素。</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>大包围 (Over-grouping)</strong></td>
+<td style="text-align:left">两条裂纹明明离得很远，为了省事用一个大方框全套进去了。</td>
+<td style="text-align:left">删除大框，根据“拆分法”规则，换成两个细长的小框独立标定。</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>捕风捉影 (Ghost-hunting)</strong></td>
+<td style="text-align:left">把灰度 &gt;121、极其微弱的浅色水痕当成了裂纹标注。</td>
+<td style="text-align:left">严格执行“太浅不标”原则！宁可漏掉浅影，绝不标入背景。</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>越俎代庖 (Touching others)</strong></td>
+<td style="text-align:left">顺手调整了画面里明显的划痕或斑块的框。</td>
+<td style="text-align:left"><strong>严禁越界！</strong> 你的任务 100% 只聚焦于重画 <code>0: crazing</code>。</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="h2-6-"><a name="6. 自检清单" class="reference-link"></a><span class="header-link octicon octicon-link"></span>6. 自检清单</h2><p>提交当天任务前，请快速翻阅抽查，并反问自己 5 个问题：</p>
+<ul>
+<li style="list-style: none;"><input type="checkbox" class="task-list-item-checkbox"> 我的输出目录里都是 <code>.txt</code> 文件吗？</li><li style="list-style: none;"><input type="checkbox" class="task-list-item-checkbox"> 我是不是绝对没有碰过 <code>1-5</code> 号类别的框？</li><li style="list-style: none;"><input type="checkbox" class="task-list-item-checkbox"> 我画的 <code>crazing</code> 框，四条边是不是都死死贴住了裂纹边缘？</li><li style="list-style: none;"><input type="checkbox" class="task-list-item-checkbox"> 对于松散的网纹，我是不是都尽责地拆分成了多个小框？</li><li style="list-style: none;"><input type="checkbox" class="task-list-item-checkbox"> 那些需要用力眯眼才能看清的浅灰色伪影，我是不是都忍住没标？</li></ul>
+<hr>
+<h2 id="h2-7-"><a name="7. 疑难反馈流程" class="reference-link"></a><span class="header-link octicon octicon-link"></span>7. 疑难反馈流程</h2><p>遇到实在无法判断的边缘图像（例如：实在分不清是点状还是网状）：</p>
+<ol>
+<li><strong>不要凭感觉盲猜！</strong></li><li>对该图像进行截图。</li><li>将截图发送至项目群组，命名为 <code>疑难_图像ID.jpg</code>，@审核员 进行最终定夺。</li><li>遇到疑难图时，先跳过它，继续做后面的标注，保持你的工作节奏。</li></ol>
+
+</body>
+</html>

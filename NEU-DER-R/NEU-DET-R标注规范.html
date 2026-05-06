@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Document</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 100%;
+			height:1200;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1, h2, h3, h4, h5, h6 { margin-top: 1.5rem; margin-bottom: 1rem; }
+        pre { background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+        code { background: #f6f8fa; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        blockquote { border-left: 4px solid #dfe2e5; padding-left: 1rem; margin: 1rem 0; color: #6a737d; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #dfe2e5; padding: 0.5rem; text-align: left; }
+        th { background: #f6f8fa; }
+    </style>
+</head>
+<body>
+<h1 id="h1-neu-det-r_spec_v1-0"><a name="NEU-DET-R_Spec_v1.0" class="reference-link"></a><span class="header-link octicon octicon-link"></span>NEU-DET-R_Spec_v1.0</h1><p><strong>版本号：</strong> v1.0<br><strong>发布日期：</strong> 2026-04-29<br><strong>维护者：</strong> NEU-DET-R 重标注项目组  </p>
+<hr>
+<h2 id="h2-1-"><a name="1. 引言" class="reference-link"></a><span class="header-link octicon octicon-link"></span>1. 引言</h2><h3 id="h3-1-1-"><a name="1.1 背景与目的" class="reference-link"></a><span class="header-link octicon octicon-link"></span>1.1 背景与目的</h3><p>NEU-DET 是工业视觉领域经典的钢材表面缺陷检测数据集，包含 6 类缺陷，图像分辨率为 200×200 像素的灰度图。在长期的学术研究与工业实践中，我们发现原始数据集中 <code>crazing</code>（龟裂/网状裂纹）类别的标注存在边界模糊、标注粒度不一以及与其他类别（如 <code>scratches</code>）混淆等问题。<br>为了提升下游目标检测模型的特征学习能力和评估准确性，本项目发起 <strong>NEU-DET-R (Refined)</strong> 重标注计划。</p>
+<h3 id="h3-1-2-"><a name="1.2 标注范围声明（重要）" class="reference-link"></a><span class="header-link octicon octicon-link"></span>1.2 标注范围声明（重要）</h3><p><strong>本次重标注工作仅针对 <code>crazing</code>（龟裂）这一特定类别进行精细化修正和标准化。</strong><br>原始数据集中的其余 5 个类别（inclusion, patches, pitted_surface, rolled-in_scale, scratches）将<strong>完全沿用原始 NEU-DET 的标注，不做任何修改</strong>。原始 NEU-DET 未公开官方标注规范，本规范基于工业缺陷检测常识和 Sama-COCO 重标注实践制定。</p>
+<hr>
+<h2 id="h2-2-crazing-"><a name="2. 重标注类别：crazing（龟裂）" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2. 重标注类别：crazing（龟裂）</h2><h3 id="h3-2-1-"><a name="2.1 视觉特征与定义" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2.1 视觉特征与定义</h3><ul>
+<li><strong>类别名称：</strong> crazing</li><li><strong>形态定义：</strong> 钢板表面由于热应力或机械应力产生的<strong>网状、不规则交叉</strong>的细微裂纹。</li><li><strong>视觉特征：</strong> 在 200×200 灰度图中，表现为多条暗色（或亮色）细线相互交织，形成类似“干涸河床”或“碎玻璃”的多边形闭合或半闭合网络。</li><li><strong>正例（应标）：</strong><ul>
+<li>具有至少 3 个交叉点的连续网状裂纹区域。</li><li>具备连续拓扑结构的网状细纹（即使占据大面积区域，标注时也受 2.2 节拆分规则约束）。</li></ul>
+</li><li><strong>反例（不应标）：</strong><ul>
+<li>单一、无分叉的长条线状缺陷（应归为 <code>scratches</code>）。</li><li>密集的孤立点状凹坑，无明显线状连接（应归为 <code>pitted_surface</code>）。</li></ul>
+</li></ul>
+<h3 id="h3-2-2-bfr-"><a name="2.2 核心标注原则：高前背景比（BFR）拆分法" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2.2 核心标注原则：高前背景比（BFR）拆分法</h3><p>与原始 NEU-DET 将大片网状裂纹整体框出的粗放策略不同，本规范强制要求<strong>最大化边界框内的前景比例</strong>。</p>
+<p><strong>理论依据：</strong><br>为了避免模型在特征提取阶段学习到过多的无缺陷背景（即框内的正常钢材纹理），我们引入边界框填充率（Bounding Box Fill Rate, BFR）作为评判标准。定义公式如下：</p>
+<p><strong>BFR = A_crack / (w × h)</strong></p>
+<p>其中：</p>
+<ul>
+<li><strong>A_crack</strong>：为框内真实裂纹所占据的像素面积（分子）。</li><li><strong>w × h</strong>：为整个边界框的宽度与高度的乘积，即总面积（分母）。</li></ul>
+<p>当多条裂纹平行或松散排列时，若偷懒使用单一包围框将它们全部罩住，会导致分母（总面积）剧增，从而使 <strong>BFR</strong> 变得极低。这就用数学方式证明了：框里的正常无用背景太多了，必须拆分成多个紧贴裂纹的小框。<br><strong>操作准则：</strong></p>
+<ul>
+<li><strong>独立标记：</strong> 对于平行排列或间距较大的裂纹线，必须拆分为多个独立的边界框进行标注。</li><li><strong>拆分阈值：</strong> 假设有两条相邻的裂纹，第一条宽度为 <strong>W1</strong>，第二条宽度为 <strong>W2</strong>，它们中间隔着的正常无缺陷背景宽度为 <strong>D</strong>。如果这段背景间距 <strong>D</strong>，甚至比这两条裂纹中最宽的那条还要宽（即 <strong>D &gt; max(W1, W2)</strong>），则坚决不能用一个大框将它们套在一起。遇到这种情况，必须强制作废大框，顺着裂纹走向分别画小框独立标定。</li></ul>
+<h3 id="h3-2-3-"><a name="2.3 边界框与可见度基准 (可见度双重判定锁)" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2.3 边界框与可见度基准 (可见度双重判定锁)</h3><p>由于 200×200 灰度图的对比度受限，人工判断极易出现主观偏差。基于对 1428 个高质量历史标注框的像素级统计分析，我们提取了真实裂纹的灰度分布与对比度规律，并制定以下<strong>强制性可见度判定基准</strong>：</p>
+<p><strong>有效 Crazing 必须同时满足以下双重条件，否则强制不予标注：</strong></p>
+<ol>
+<li><strong>深度锁（绝对灰度上限）：</strong><br>真正的 <code>crazing</code> 缺陷核心必须具备暗色下凹的视觉特征。统计表明，若裂纹最暗处的核心灰度超过 <strong>121</strong>（即整体发白、发灰，接近正常钢材的中性灰度），则说明其物理深度极浅，已与背景高度融合。此类特征予以<strong>强制剔除</strong>。</li><li><strong>反差锁（局部对比度下限）：</strong><br>裂纹与其紧贴的局部正常钢板背景之间，必须具备显著的视觉反差。数据验证显示，真实龟裂的平均对比度高达 97。为防止极浅水印或伪影的干扰，要求裂纹最暗核心处与其周围正常背景的<strong>灰度差绝对不能小于 59</strong>。如果视觉反差极弱，视为无效特征，当做背景忽略。<h3 id="h3-2-4-edge-cases-"><a name="2.4 边缘情况处理 (Edge Cases)" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2.4 边缘情况处理 (Edge Cases)</h3></li></ol>
+<ul>
+<li><strong>截断 (Truncation)：</strong> 当 crazing 延伸至图像边界（200×200 边缘）且被截断时，边界框应直接贴合图像物理边缘。</li><li><strong>极小裂纹：</strong> 若独立网状结构小于 15×15 像素且肉眼极难辨认，不予标注（忽略该微小缺陷）。</li><li><strong>与其他缺陷重叠：</strong> 若 crazing 区域上叠加了明显的斑块（patches）或夹杂物（inclusion），crazing 的边界框应正常绘制，包含被遮挡的底层区域（假设网状结构在底层是连续的）。</li></ul>
+<hr>
+<h2 id="h2-3-"><a name="3. 其他未修改类别一览表" class="reference-link"></a><span class="header-link octicon octicon-link"></span>3. 其他未修改类别一览表</h2><p>以下 5 类缺陷保留原始 PASCAL VOC 转换为 YOLO 格式后的坐标和类别，<strong>本次工作不作修改</strong>：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">类别名称 (Class)</th>
+<th style="text-align:left">中文释义</th>
+<th style="text-align:left">一句话定义</th>
+<th style="text-align:left">处理策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>inclusion</code></td>
+<td style="text-align:left">夹杂物</td>
+<td style="text-align:left">钢材表面压入的异物，通常呈现为孤立的暗色或亮色不规则块状。</td>
+<td style="text-align:left"><strong>本次沿用原始标注，无改动</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>patches</code></td>
+<td style="text-align:left">斑块</td>
+<td style="text-align:left">大面积的局部区域变色或表面脱落，无明显固定形状。</td>
+<td style="text-align:left"><strong>本次沿用原始标注，无改动</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>pitted_surface</code></td>
+<td style="text-align:left">凹坑表面</td>
+<td style="text-align:left">密集的点状凹陷，分布通常较广。</td>
+<td style="text-align:left"><strong>本次沿用原始标注，无改动</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>rolled-in_scale</code></td>
+<td style="text-align:left">氧化铁皮压入</td>
+<td style="text-align:left">轧制过程中压入表面的氧化皮，常呈鱼鳞状或点条状分布。</td>
+<td style="text-align:left"><strong>本次沿用原始标注，无改动</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>scratches</code></td>
+<td style="text-align:left">划痕</td>
+<td style="text-align:left">直线或平滑曲线状的机械擦伤，无网状交叉拓扑。</td>
+<td style="text-align:left"><strong>本次沿用原始标注，无改动</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="h2-4-"><a name="4. 质量保证与目标" class="reference-link"></a><span class="header-link octicon octicon-link"></span>4. 质量保证与目标</h2><ul>
+<li><strong>标注一致性 (IAA, Inter-Annotator Agreement)：</strong> <em> 两名独立标注员在同一批图像上的 <code>crazing</code> 标注，目标达到 <strong>IoU &gt;= 85%</strong> 且类别一致性达到 <em>*95% 以上</em></em>。</li><li><strong>验证方式：</strong> 重标注完成后，将使用基线模型（如 YOLOv8 或 Faster R-CNN）在原始测试集和 NEU-DET-R 测试集上分别训练评估，预期在 <code>crazing</code> 类别的 <a href="mailto:mAP@0.5">mAP@0.5</a> 指标上获得显著提升。</li></ul>
+<hr>
+<h2 id="h2-5-"><a name="5. 数据集结构" class="reference-link"></a><span class="header-link octicon octicon-link"></span>5. 数据集结构</h2><p>重新标注后的数据集将统一采用 <strong>YOLO 文本格式</strong> 进行存储和发布。</p>
+<ul>
+<li><strong>图像格式：</strong> 保持原版 <code>*.jpg</code> (200×200)</li><li><strong>标签格式：</strong> <code>*.txt</code></li><li><strong>类别索引 (classes.txt)：</strong><br>  0: crazing<br>  1: inclusion<br>  2: patches<br>  3: pitted_surface<br>  4: rolled-in_scale<br>  5: scratches</li></ul>
+<p><em>(注：由于仅重标类别 0，原数据集中类别 1-5 的 txt 记录将直接平移至新数据集文件中。)</em></p>
+
+</body>
+</html>
